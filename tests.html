@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Refactored date examples</title>
+
+
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
+    <script src="bootstrap-datedropdown.js"></script>
+
+    <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.11.0.css">
+    <script src="http://code.jquery.com/qunit/qunit-1.11.0.js""></script>
+
+    <script type="text/javascript" charset="utf-8">
+      var options = {
+        choices: [
+          {
+            type: "fixed",
+            label: "George Washington's Birthday",
+          },
+          {
+            type: "fixed",
+            label: "Example",
+          },
+        ]
+      };
+      $(function(){
+        $('.date-dropdown').dateDropdown(options);
+      });
+    </script>
+
+    <script>
+      test("date dropdown val functionality", function() {
+        var $dateDropdown = $('.date-dropdown');
+        var $emptyDiv = $('.empty-div');
+        equal($emptyDiv.val(), "");
+        equal($dateDropdown.val(), "");
+        $dateDropdown.val('test');
+        equal($dateDropdown.val(), 'test');
+
+        // now add a valHook to div and see if the date-dropdown properly
+        // handles it
+        $.valHooks.div = {
+          set: function(elem, val) {
+            $(elem).data('test', val);
+            return $(elem);
+          },
+          get: function(elem) {
+            return $(elem).data('test');
+          }
+        };
+        // setup again since first valHook overwrote this
+        $dateDropdown.dateDropdown(options);
+
+        $emptyDiv.val('123');
+        equal($emptyDiv.val(), '123');
+        $dateDropdown.val('test');
+        equal($dateDropdown.val(), 'test');
+      });
+    </script>
+  </head>
+  <body>
+
+    <div class="date-dropdown"></div>
+    <div class="empty-div"></div>
+
+    <div id="qunit"></div>
+
+  </body>
+</html>
