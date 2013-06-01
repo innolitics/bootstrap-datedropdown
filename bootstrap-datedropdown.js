@@ -27,7 +27,7 @@
         var $btn = $("<button>")
         .addClass("btn dropdown-toggle")
         .attr("data-toggle", "dropdown")
-        .append('<span class="currentOption">')
+        .append('<span class="current-option">')
         .append('<span class="caret">');
 
         var $btnGroup = $("<div>")
