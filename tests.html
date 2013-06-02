@@ -15,6 +15,7 @@
 
     <script type="text/javascript" charset="utf-8">
       var options = {
+        defaultChoice: 2,
         choices: [
           {
             type: "constant",
@@ -97,27 +98,27 @@
 
 
         test('Date to Input Text', function(){
-          equal($dateDropdown.dateDropdown('choice', 0).val(), '2/19/1988');
+          equal($dateDropdown.dateDropdown(0).val(), '2/19/1988');
           equal($input.val(), '2/19/1988');
-          equal($dateDropdown.dateDropdown('choice', 1).val(), '2/22/1732');
+          equal($dateDropdown.dateDropdown(1).val(), '2/22/1732');
           equal($input.val(), '2/22/1732');
-          equal($dateDropdown.dateDropdown('choice', 2).val(), '2/22/1732');
+          equal($dateDropdown.dateDropdown(2).val(), '2/22/1732');
           equal($input.val(), '2/22/1732');
-          equal($dateDropdown.dateDropdown('choice', 3).val(), '2/22/1732');
+          equal($dateDropdown.dateDropdown(3).val(), '2/22/1732');
           equal($input.val(), (1732 - 1988.0).toString());
-          equal($dateDropdown.dateDropdown('choice', 4).val(), '2/22/1732');
+          equal($dateDropdown.dateDropdown(4).val(), '2/22/1732');
           equal($input.val(), (1732 - 1732).toString());
-          equal($dateDropdown.dateDropdown('choice', 5).val(), '2/22/1732');
+          equal($dateDropdown.dateDropdown(5).val(), '2/22/1732');
           equal($input.val(), "-20.7");
         });
 
 
         test('Changing The Value', function(){
-          $dateDropdown.dateDropdown('choice', 2)
+          $dateDropdown.dateDropdown(2)
           .val('2/19/1988');
           equal($dateDropdown.val(), '2/19/1988');
           $dateDropdown.val('2/19/1989')
-          $dateDropdown.dateDropdown('choice', 3);
+          $dateDropdown.dateDropdown(3);
           equal($input.val(), '1');
         });
 

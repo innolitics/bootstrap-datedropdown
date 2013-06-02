@@ -10,20 +10,86 @@
     <script src="bootstrap-datedropdown.js"></script>
 
     <script type="text/javascript" charset="utf-8">
-      var options = {
-        choices: [
-          {
-            type: "fixed",
-            label: "George Washington's Birthday",
-          },
-          {
-            type: "fixed",
-            label: "Example"
-          },
-        ]
-      };
       $(function(){
-        $('.date-dropdown').dateDropdown(options);
+
+        function yearsAfter(date, offset) {
+          var out = new Date(date.getTime());
+          out.setFullYear(date.getFullYear() + offset);
+          return out;
+        };
+        var dob = new Date(1988, 1, 19);
+        var normalRetirement = yearsAfter(dob, 65);
+        var earliestUnreduced = yearsAfter(dob, 60);
+        var options = {
+          defaultChoice: 2,
+          choices: [
+            {
+              type: "constant",
+              label: "Normal Retirement",
+              value: normalRetirement,
+            },
+            {
+              type: "constant",
+              label: "Earliest Unreduced",
+              value: earliestUnreduced,
+            },
+            {
+              type: "pickDate",
+              label: "Date (MM/DD/YYYY)",
+            },
+            {
+              type: "yearsAfter",
+              label: "Your Age",
+              origin: dob,
+            },
+          ]
+        };
+
+        var commencementChoices = [
+            {
+              type: "function",
+              label: "Years After Termination",
+              text2date: function(text) {
+                var offset = Number(text);
+                var terminationDate = $('#termination-date').val();
+                return yearsAfter(new Date(terminationDate), offset);
+              },
+              date2text: function(date) {
+                var terminationDate = new Date($('#termination-date').val());
+                text = String(date.getFullYear() - terminationDate.getFullYear());
+                return text;
+              }
+            },
+            {
+              type: "pickDate",
+              label: "Date (MM/DD/YYYY)",
+            },
+            {
+              type: "yearsAfter",
+              label: "Your Age",
+              origin: dob,
+            },
+        ];
+
+        $('.date-dropdown:first').dateDropdown(options).find('input').change(function(){
+          $('.commencement-date-dropdown').dateDropdown('refresh');
+        });
+        $('.commencement-date-dropdown').eq(0).dateDropdown({
+          defaultChoice: 0,
+          initialValue: '0',
+          choices: commencementChoices,
+        });
+        $('.commencement-date-dropdown').eq(1).dateDropdown({
+          defaultChoice: 0,
+          initialValue: '1',
+          choices: commencementChoices,
+        });
+        $('.commencement-date-dropdown').eq(2).dateDropdown({
+          defaultChoice: 0,
+          initialValue: '2',
+          choices: commencementChoices,
+        });
+
       });
     </script>
     
@@ -34,7 +100,10 @@
         <div class="offset1 span10">
           <h1>Demo of the Date dropdown</h1>
           <form>
-            <div class="date-dropdown"></div>
+            <div id="termination-date" class="date-dropdown"></div> <br />
+            <div class="commencement-date-dropdown"></div> <br />
+            <div class="commencement-date-dropdown"></div> <br />
+            <div class="commencement-date-dropdown"></div>
           </form>
         </div>
       </div>

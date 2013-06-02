@@ -12,9 +12,15 @@
     var parseDateOption = function(opt) {
         if (typeof(opt) == 'string') {
             return string2date(opt);
-        } else {
-            return opt;
+        } else if (opt.getMonth) {
+            return new Date(opt.getTime());
         }
+    };
+
+    function yearsAfter(date, offset) {
+      var out = new Date(date.getTime());
+      out.setFullYear(date.getFullYear() + offset);
+      return out;
     };
 
     var getTextForCurrentValue = function(date, choice) {
@@ -38,13 +44,36 @@
         return text;
     };
 
+    var updateCurrentValue = function(text, choice) {
+        var date;
+        switch (choice.type) {
+            case 'constant':
+                date = choice.value;
+                break;
+            case 'function':
+                date = choice.text2date(text);
+                break;
+            case 'yearsAfter':
+                var offset = Number(text);
+                date = yearsAfter(choice.origin, offset);
+                break;
+            case 'pickDate':
+                date = new Date(text);
+                break;
+            default:
+                throw "Unreconized choice type."
+        }
+        return date;
+    };
+
+
     // note, this isn't perfectly accurate
     var yearsBetweenDates = function(date1, date2) {
         return date1.getFullYear() - date2.getFullYear();
     };
 
     // DROPDOWN PLUGIN
-    var initDropdown = function($dropdown, options) {
+    var dateDropdownInit = function($dropdown, options) {
 
         // PARSE OPTIONS
         
@@ -53,12 +82,13 @@
             dropdownPosition: "left",
             defaultChoice: 0,
             inputId: "",
-            initialValue: new Date('today'),
+            initialValue: new Date(),
             class: "date-dropdown",
         }, options || {});
 
-        settings.currentChoice = settings.choices[settings.defaultChoice];
-        settings.currentValue = new Date(settings.initialValue.getTime());
+        var choice = settings.choices[settings.defaultChoice];
+        settings.currentChoice = choice;
+        settings.currentValue = updateCurrentValue(settings.initialValue, choice);
 
         // convert date-strings to date-objects
         for (var i = 0; i < settings.choices.length; i++) {
@@ -115,6 +145,7 @@
         } else {
             $dropdown.append($input, $btnGroup);
         }
+        $dropdown.dateDropdown('choice', settings.defaultChoice);
 
         // SETUP VAL FUNCTIONS
         // override the val() function, preserving previous functionality in
@@ -147,39 +178,15 @@
                     }
                 }
                 settings.currentValue = parseDateOption(val);
-                updateCurrentValue();
                 return $dropdown;
             }
         };
 
         // CHANGE LISTENERS
-        var updateCurrentValue = function() {
-            var date;
+        $input.change(function(){
             var choice = settings.currentChoice;
             var text = $input.val();
-            switch (choice.type) {
-                case 'constant':
-                    date = choice.value;
-                    break;
-                case 'function':
-                    date = choice.text2date(text);
-                    break;
-                case 'yearsAfter':
-                    var yearsAfter = Number(text);
-                    date = new Date(choice.origin.getTime());
-                    date.setYear(date.getFullYear() + yearsAfter);
-                    break;
-                case 'pickDate':
-                    date = new Date(text);
-                    break;
-                default:
-                    throw "Unreconized choice type."
-            }
-            return date;
-        };
-
-        $input.change(function(){
-            var date = updateCurrentValue();
+            var date = updateCurrentValue(text, choice);
             settings.currentValue = date;
         });
 
@@ -189,7 +196,7 @@
         });
     };
 
-    var changeDropdownState = function($dropdown, choiceNumber) {
+    var dateDropdownSelect = function($dropdown, choiceNumber) {
         var settings = $dropdown.data().settings;
         var $input = $dropdown.find('input');
         var choice = settings.choices[choiceNumber];
@@ -197,6 +204,9 @@
 
         if (choice.type == 'constant') {
             settings.currentValue = choice.value;
+            $input.prop('disabled', true);
+        } else {
+            $input.prop('disabled', false);
         }
 
         var date = settings.currentValue;
@@ -205,14 +215,24 @@
         $dropdown.find('.current-option-label').text(choice.label + " ");
     };
 
-    $.fn.dateDropdown = function(){
+    var dateDropdownRefresh = function($dropdown) {
+        var settings = $dropdown.data().settings;
+        var date = settings.currentValue;
+        var choice = settings.currentChoice;
+        var text = getTextForCurrentValue(date, choice);
+    };
+
+    $.fn.dateDropdown = function(arg){
         $dropdown = $(this);
 
-        if (arguments.length == 1) {
-            initDropdown($dropdown, arguments[0]);
+        if (typeof(arg) == 'object') {
+            dateDropdownInit($dropdown, arg);
         }
-        else if (arguments.length == 2 && arguments[0] == 'choice') {
-            changeDropdownState($dropdown, arguments[1]);
+        else if (arg == 'refresh') {
+            dateDropdownRefresh($dropdown);
+        }
+        else if (typeof(arg) == 'number') {
+            dateDropdownSelect($dropdown, arg);
         }
         return $dropdown;
     };
