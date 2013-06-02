@@ -17,56 +17,126 @@
       var options = {
         choices: [
           {
-            type: "fixed",
-            label: "George Washington's Birthday",
+            type: "constant",
+            label: "My Birthday",
+            value: "2/19/1988",
           },
           {
-            type: "fixed",
-            label: "Example",
+            type: "constant",
+            label: "George Washington's Birthday",
+            value: new Date(1732, 1, 22),
+          },
+          {
+            type: "pickDate",
+            label: "Pick a Date (mm/dd/yyyy)",
+          },
+          {
+            type: "yearsAfter",
+            label: "Age in Years",
+            origin: "2/19/1988",
+          },
+          {
+            type: "yearsAfter",
+            label: "George's Age",
+            origin: new Date(1732, 2, 22),
+          },
+          {
+            type: "function",
+            label: "Decades after WW2",
+            text2date: function(text) {
+              var ww2date = new Date(1939, 9, 1);
+              var decades = Number(text);
+              ww2date.setYear(ww2date.getFullYear() + decades*10);
+              return ww2date;
+            },
+            date2text: function(date) {
+              var ww2date = new Date(1939, 9, 1);
+              return String((date.getFullYear() - ww2date.getFullYear())/10);
+            }
           },
         ]
       };
-      $(function(){
-        $('.date-dropdown').dateDropdown(options);
-      });
     </script>
 
     <script>
-      test("date dropdown val functionality", function() {
-        var $dateDropdown = $('.date-dropdown');
-        var $emptyDiv = $('.empty-div');
-        equal($emptyDiv.val(), "");
-        equal($dateDropdown.val(), "");
-        $dateDropdown.val('test');
-        equal($dateDropdown.val(), 'test');
+      $(function(){
+        var $dateDropdown;
+        var $input;
+        module('Date Dropdown', {
+          setup: function() {
+            $dateDropdown = $('.date-dropdown')
+            .empty()
+            .data({})
+            .dateDropdown(options);
+            $input = $dateDropdown.find('input');
+          }, 
+        });
 
-        // now add a valHook to div and see if the date-dropdown properly
-        // handles it
-        $.valHooks.div = {
-          set: function(elem, val) {
-            $(elem).data('test', val);
-            return $(elem);
-          },
-          get: function(elem) {
-            return $(elem).data('test');
-          }
-        };
-        // setup again since first valHook overwrote this
-        $dateDropdown.dateDropdown(options);
 
-        $emptyDiv.val('123');
-        equal($emptyDiv.val(), '123');
-        $dateDropdown.val('test');
-        equal($dateDropdown.val(), 'test');
+        test("valHook functionality", function() {
+          var $emptyDiv = $('.empty-div');
+          equal($emptyDiv.val(), "");
+          $dateDropdown.val('2/2/2010');
+          equal($dateDropdown.val(), '2/2/2010');
+          $.valHooks.div = {
+            set: function(elem, val) {
+              $(elem).data('test', val);
+              return $(elem);
+            },
+            get: function(elem) {
+              return $(elem).data('test');
+            }
+          };
+          // setup again since first valHook overwrote this
+          $dateDropdown.empty().dateDropdown(options);
+          $emptyDiv.val('123');
+          equal($emptyDiv.val(), '123');
+          $dateDropdown.val('2/2/2010');
+          equal($dateDropdown.val(), '2/2/2010');
+        });
+
+
+        test('Date to Input Text', function(){
+          equal($dateDropdown.dateDropdown('choice', 0).val(), '2/19/1988');
+          equal($input.val(), '2/19/1988');
+          equal($dateDropdown.dateDropdown('choice', 1).val(), '2/22/1732');
+          equal($input.val(), '2/22/1732');
+          equal($dateDropdown.dateDropdown('choice', 2).val(), '2/22/1732');
+          equal($input.val(), '2/22/1732');
+          equal($dateDropdown.dateDropdown('choice', 3).val(), '2/22/1732');
+          equal($input.val(), (1732 - 1988.0).toString());
+          equal($dateDropdown.dateDropdown('choice', 4).val(), '2/22/1732');
+          equal($input.val(), (1732 - 1732).toString());
+          equal($dateDropdown.dateDropdown('choice', 5).val(), '2/22/1732');
+          equal($input.val(), "-20.7");
+        });
+
+
+        test('Changing The Value', function(){
+          $dateDropdown.dateDropdown('choice', 2)
+          .val('2/19/1988');
+          equal($dateDropdown.val(), '2/19/1988');
+          $dateDropdown.val('2/19/1989')
+          $dateDropdown.dateDropdown('choice', 3);
+          equal($input.val(), '1');
+        });
+
       });
     </script>
   </head>
   <body>
 
-    <div class="date-dropdown"></div>
-    <div class="empty-div"></div>
+    <br />
+    <div class="row">
+      <div class="span4">
+        <div class="date-dropdown span2"></div>
+        <div class="empty-div"></div>
+      </div>
+    </div>
+    <br />
 
     <div id="qunit"></div>
-
+    <div id="qunit-fixture"></div>
+    
   </body>
 </html>
