@@ -49,12 +49,12 @@
             {
               type: "function",
               label: "Years After Termination",
-              text2date: function(text) {
+              textToDate: function(text) {
                 var offset = Number(text);
                 var terminationDate = $('#termination-date').val();
                 return yearsAfter(new Date(terminationDate), offset);
               },
-              date2text: function(date) {
+              dateTotext: function(date) {
                 var terminationDate = new Date($('#termination-date').val());
                 text = String(date.getFullYear() - terminationDate.getFullYear());
                 return text;
@@ -71,20 +71,21 @@
             },
         ];
 
-        $('.date-dropdown:first').dateDropdown(options).find('input').change(function(){
+        $('.date-dropdown:first').dateDropdown(options)
+        .find('input').change(function(){
           $('.commencement-date-dropdown').dateDropdown('refresh');
         });
-        $('.commencement-date-dropdown').eq(0).dateDropdown({
+        $('.commencement-date-dropdown:eq(0)').dateDropdown({
           defaultChoice: 0,
           initialValue: '0',
           choices: commencementChoices,
         });
-        $('.commencement-date-dropdown').eq(1).dateDropdown({
+        $('.commencement-date-dropdown:eq(1)').dateDropdown({
           defaultChoice: 0,
           initialValue: '1',
           choices: commencementChoices,
         });
-        $('.commencement-date-dropdown').eq(2).dateDropdown({
+        $('.commencement-date-dropdown:eq(2)').dateDropdown({
           defaultChoice: 0,
           initialValue: '2',
           choices: commencementChoices,

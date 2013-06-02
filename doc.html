@@ -1,0 +1,269 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  
+    <title>Bootstrap Date Drowdown Documentation</title>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
+    <script src="bootstrap-datedropdown.js"></script>
+
+    <script type="text/javascript" charset="utf-8">
+      $(function(){
+
+        function yearsAfter(date, offset) {
+          var out = new Date(date.getTime());
+          out.setFullYear(date.getFullYear() + offset);
+          return out;
+        };
+        var dob = new Date(1988, 1, 19);
+        var normalRetirement = yearsAfter(dob, 65);
+        var earliestUnreduced = yearsAfter(dob, 60);
+        var options = {
+          defaultChoice: 2,
+          choices: [
+            {
+              type: "constant",
+              label: "Normal Retirement",
+              value: normalRetirement,
+            },
+            {
+              type: "constant",
+              label: "Earliest Unreduced",
+              value: earliestUnreduced,
+            },
+            {
+              type: "pickDate",
+              label: "Date (MM/DD/YYYY)",
+            },
+            {
+              type: "yearsAfter",
+              label: "Your Age",
+              origin: dob,
+            },
+          ]
+        };
+
+        var commencementChoices = [
+            {
+              type: "function",
+              label: "Years After Termination",
+              text2date: function(text) {
+                var offset = Number(text);
+                var terminationDate = $('#termination-date').val();
+                return yearsAfter(new Date(terminationDate), offset);
+              },
+              date2text: function(date) {
+                var terminationDate = new Date($('#termination-date').val());
+                text = String(date.getFullYear() - terminationDate.getFullYear());
+                return text;
+              }
+            },
+            {
+              type: "pickDate",
+              label: "Date (MM/DD/YYYY)",
+            },
+            {
+              type: "yearsAfter",
+              label: "Your Age",
+              origin: dob,
+            },
+        ];
+
+        $('.date-dropdown:first').dateDropdown(options).find('input').change(function(){
+          $('.commencement-date-dropdown').dateDropdown('refresh');
+        });
+        $('.commencement-date-dropdown:eq(0)').dateDropdown({
+          defaultChoice: 0,
+          initialValue: '0',
+          choices: commencementChoices,
+        });
+        $('.commencement-date-dropdown:eq(1)').dateDropdown({
+          defaultChoice: 0,
+          initialValue: '1',
+          choices: commencementChoices,
+        });
+        $('.commencement-date-dropdown:eq(2)').dateDropdown({
+          defaultChoice: 0,
+          initialValue: '2',
+          choices: commencementChoices,
+        });
+
+      });
+    </script>
+    
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="offset1 span9">
+          <h1>Bootstrap Date Dropdown Documnetation</h1>
+
+          <h3>Overview</h3>
+          A fully-tested generic bootstrap component that allows users to specify a date in a
+          variety of different ways.
+
+          <h4>Example Use Cases</h4>
+
+          <div class="well">
+            <h5>Pick fixed dates</h5>
+            <p>You want to allow users choose between three fixed
+            dates (e.g. Thanksgiving, Christmas, and Memorial Day), or
+            an arbitraryly specified date.</p>
+            <div id="termination-date" class="date-dropdown"></div> <br />
+          </div>
+
+          <li>You want a user to input a date or their age.</li>
+          <li>You want your users to specify a date in terms of the number of
+          years after a second user specified date.</li>
+
+          <h3>Options</h3>
+          <table class="table table-bordered table-hover">
+          <tr>
+            <th>Name</th>
+            <th>type</th>
+            <th>default</th>
+            <th>description</th>
+          </tr>
+          <tr>
+            <td>choices</td>
+            <td>array</td>
+            <td>options for simple date picker</td>
+            <td>An array of objects containing the data used to generate the
+              different dropdown choices used to specify how the date will be
+              generated.  There are four different types of choices, 'constant',
+              'pickDate', 'yearsAfter', and 'function'.  See table below for more
+              details.</td>
+          </tr>
+          <tr>
+            <td>defaultChoice</td>
+            <td>number</td>
+            <td>0</td>
+            <td>The initially selected dropdown choice.</td>
+          </tr>
+          <tr>
+            <td>defaultValue</td>
+            <td>string</td>
+            <td>today</td>
+            <td>Starting value of the date dropdown.  The interpretation of this
+              string depends on the defaultChoice's type; in other words, if the
+              default choice is years after 1980, then the string will be
+              interpreted as a number, but if the default choice is a simple
+              date picker, the string will be interpreted as a date.
+            </td>
+          </tr>
+          <tr>
+            <td>alwaysShowLabels</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>Control whether the choice labels are displayed in the dropdown
+            button.  If false, the labels are only displayed when the user
+            selects the dropdown.</td>
+          </tr>
+          <tr>
+            <td>dropdownPosition</td>
+            <td>string</td>
+            <td>"left"</td>
+            <td>Options are "left" or "right".  Control where choice dropdown button is placed, relative to the
+              input.</td>
+          </tr>
+          </table>
+
+          <h3>Choices</h3>
+          <h4>Example</h4>
+          <pre>
+settings: {
+  choices: [
+    {
+      type: "constant",
+      label: "Today",
+      value: new Date(),
+    },
+    {
+      type: "pickDate",
+      label: "Choose a Date",
+    },
+    {
+      type: "yearsAfter",
+      label: "Your Age",
+      origin: yourDateOfBirth,
+    },
+    {
+      type: "function",
+      label: "Decades after WW2",
+      text2date: function(text) {
+        var ww2date = new Date(1939, 9, 1);
+        var decades = Number(text);
+        ww2date.setYear(ww2date.getFullYear() + decades*10);
+        return ww2date;
+      },
+      date2text: function(date) {
+        var ww2date = new Date(1939, 9, 1);
+        return String((date.getFullYear() - ww2date.getFullYear())/10);
+      }
+    },
+  ],
+}
+          </pre>
+
+          <h4>Common Options</h4>
+          <h4>Constant Type</h4>
+          <h4>Pick Date Type</h4>
+          <h4>Years After Type</h4>
+          <h4>Custom Function Type</h4>
+
+          <h3>Methods</h3>
+          <h4>.dateDropdown(options)</h4>
+          <p>Initializes the date-dropdown with an optional options object.</p>
+
+          <h4>.dateDropdown(number)</h4>
+          <p>Changes the currently selected choice.</p>
+          <p>The currently selected date will be preserved unless the new choice
+          is "constant" type.  If the new choice is of "function" type, then the
+          dateToInput and inputToDate options are used to translate the
+          currently selected date as the user switches between choices.</p>
+
+          <h4>.dateDropdown("refresh")</h4>
+          <p>Re-draw the date-dropdown.  This is useful if you have choices of
+          "function" type that need to by synced to other interface elements.</p>
+
+          <h4>.val()</h4>
+          <p>Calling val() on the date-dropdown <code>div</code> will return a
+              string representation of the currently selected date.</p>
+
+          <p>The val() function can also be used to set the current value, unless
+          the current choice is a "constant" type, in which case it doesn't make
+          sense to change the allowed value.</p>
+          <div class="alert alert-info">
+            <strong>Heads up!</strong> Any previously defined jQuery valHooks
+            are preserved for non-dropdown <code>div</code> tags (to avoid
+            plugin conflicts), however it is possible that other plugins whttp://twitter.github.io/bootstrap/javascript.html#overviewill
+            overwrite our valHooks.
+          </div>
+
+          <h3>Events</h3>
+          <table class="table table-bordered table-hover">
+          <tr>
+            <th>Event</th>
+            <th>description</th>
+          </tr>
+          <tr>
+            <td>valueChange</td>
+            <td>This event fires every time the underlying date represented by
+            the plugin changes.  This will typically occurs when the user edits
+            the input tag, however it will also fire if the value is changed
+            programatically.</td>
+          </tr>
+          </table>
+
+          <h2>Bug Fixes and Suggestions?</h2>
+          <p>We are always happy to hear when people are using our code!  We If
+          you have any suggestions, or run across bugs or inconsistencies in the
+          documentation, please create a github issue and we will respond as
+          fast as possible! </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
