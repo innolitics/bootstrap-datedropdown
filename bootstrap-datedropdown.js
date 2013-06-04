@@ -1,15 +1,15 @@
 (function($){
 
     // UTILITY FUNCTIONS
-    var date2string = function(date) {
+    function date2string(date) {
         return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear();
     };
 
-    var string2date = function(str) {
+    function string2date(str) {
         return new Date(str);
     };
 
-    var parseDateOption = function(opt) {
+    function parseDateOption(opt) {
         if (typeof(opt) == 'string') {
             return string2date(opt);
         } else if (opt.getMonth) {
@@ -30,7 +30,7 @@
                 text = date2string(choice.value);
                 break;
             case 'function':
-                text = choice.dateToText(date);
+                text = choice.dateToInput(date);
                 break;
             case 'yearsAfter':
                 text = String(date.getFullYear() - choice.origin.getFullYear());
@@ -51,7 +51,7 @@
                 date = choice.value;
                 break;
             case 'function':
-                date = choice.textToDate(text);
+                date = choice.inputToDate(text);
                 break;
             case 'yearsAfter':
                 var offset = Number(text);
@@ -88,10 +88,6 @@
             valueChange: undefined,
         }, options || {});
 
-        var choice = settings.choices[settings.defaultChoice];
-        settings.currentChoice = choice;
-        settings.currentValue = updateCurrentValue(settings.defaultValue, choice);
-
         // convert date-strings to date-objects
         for (var i = 0; i < settings.choices.length; i++) {
             var choice = settings.choices[i];
@@ -105,6 +101,10 @@
                     break;
             }
         }
+
+        var choice = settings.choices[settings.defaultChoice];
+        settings.currentChoice = choice;
+        settings.currentValue = updateCurrentValue(settings.defaultValue, choice);
 
         // save a copy of choices onto the object
         $dropdown.data('settings', settings);
@@ -219,7 +219,9 @@
         var date = settings.currentValue;
         var text = getTextForCurrentValue(date, choice);
         $input.val(text);
-        $dropdown.find('.current-option-label').text(choice.label + " ");
+        if (settings.alwaysShowLabels) {
+            $dropdown.find('.current-option-label').text(choice.label + " ");
+        }
     };
 
     var dateDropdownRefresh = function($dropdown) {
@@ -229,7 +231,7 @@
     };
 
     $.fn.dateDropdown = function(arg){
-        $dropdown = $(this);
+        var $dropdown = $(this);
 
         if (typeof(arg) == 'object') {
             dateDropdownInit($dropdown, arg);

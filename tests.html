@@ -45,13 +45,13 @@
           {
             type: "function",
             label: "Decades after WW2",
-            textToDate: function(text) {
+            inputToDate: function(text) {
               var ww2date = new Date(1939, 9, 1);
               var decades = Number(text);
               ww2date.setYear(ww2date.getFullYear() + decades*10);
               return ww2date;
             },
-            dateToText: function(date) {
+            dateToInput: function(date) {
               var ww2date = new Date(1939, 9, 1);
               return String((date.getFullYear() - ww2date.getFullYear())/10);
             }

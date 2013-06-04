@@ -8,9 +8,84 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.js"></script>
     <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
     <script src="bootstrap-datedropdown.js"></script>
+    <link href="http://twitter.github.com/bootstrap/assets/js/google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="http://twitter.github.com/bootstrap/assets/js/google-code-prettify/prettify.js"></script>
+    <style type="text/css" media="all">
+      footer,
+      header {
+        min-height: 50px;
+        background-color: #EEE;
+        width: 100%;
+        padding: 10px;
+      }
+      header {
+        height: 120px;
+        border-bottom: 1px solid #DDD;
+        background-image: url('eipi_logo_final_gray.png');
+        background-repeat: no-repeat;
+        background-position: 10px;
+      }
+      footer {
+        border-top: 1px solid #DDD;
+      }
+      .right {
+        float: right;
+        margin-right: 50px;
+      }
+      .left {
+        float: left;
+      }
+
+      #title {
+      }
+    </style>
 
     <script type="text/javascript" charset="utf-8">
       $(function(){
+         prettyPrint();
+
+        var demo1 = {
+          choices: [
+            {
+              type: "constant",
+              label: "Memorial Day", 
+              value: "5/27/2013",
+            },
+            {
+              type: "constant",
+              label: "Christmas", 
+              value: "12/25/2013",
+            },
+            {
+              type: "constant",
+              label: "Thanksgiving", 
+              value: "11/28/2013",
+            },
+            {
+              type: "pickDate",
+              label: "Specify", 
+            },
+          ]
+        };
+        $('#demo-1').dateDropdown(demo1);
+
+        var demo2 = {
+          defaultValue: "26",
+          defaultChoice: 0,
+          alwaysShowLabels: false,
+          choices: [
+            {
+              type: "yearsAfter",
+              label: "Age", 
+              origin: "2/19/1988",
+            },
+            {
+              type: "pickDate",
+              label: "Specify Date", 
+            },
+          ]
+        };
+        $('#demo-2').dateDropdown(demo2);
 
         function yearsAfter(date, offset) {
           var out = new Date(date.getTime());
@@ -70,38 +145,29 @@
               origin: dob,
             },
         ];
-
-        $('.date-dropdown:first').dateDropdown(options).find('input').change(function(){
-          $('.commencement-date-dropdown').dateDropdown('refresh');
-        });
-        $('.commencement-date-dropdown:eq(0)').dateDropdown({
-          defaultChoice: 0,
-          initialValue: '0',
-          choices: commencementChoices,
-        });
-        $('.commencement-date-dropdown:eq(1)').dateDropdown({
-          defaultChoice: 0,
-          initialValue: '1',
-          choices: commencementChoices,
-        });
-        $('.commencement-date-dropdown:eq(2)').dateDropdown({
-          defaultChoice: 0,
-          initialValue: '2',
-          choices: commencementChoices,
-        });
-
       });
     </script>
     
   </head>
   <body>
+    <header>
+      <div style="margin-left: 300px;">
+        <h1 id="title">Bootstrap Date Dropdown
+        <br />
+        </h1>
+        <small>
+          Code Developed by <a href="http://www.eipiconsulting.com" target="_blank">EiPi Consulting</a>.
+        </small>
+        <br />
+        <small>We are a five-man remote web-development team.</small>
+      </div>
+    </header>
     <div class="container">
       <div class="row">
         <div class="offset1 span9">
-          <h1>Bootstrap Date Dropdown Documnetation</h1>
 
           <h3>Overview</h3>
-          A fully-tested generic bootstrap component that allows users to specify a date in a
+          A fully-tested, generic bootstrap component that allows users to specify a date in a
           variety of different ways.
 
           <h4>Example Use Cases</h4>
@@ -111,12 +177,23 @@
             <p>You want to allow users choose between three fixed
             dates (e.g. Thanksgiving, Christmas, and Memorial Day), or
             an arbitraryly specified date.</p>
-            <div id="termination-date" class="date-dropdown"></div> <br />
+            <div id="demo-1" class="date-dropdown"></div> <br />
           </div>
 
-          <li>You want a user to input a date or their age.</li>
-          <li>You want your users to specify a date in terms of the number of
-          years after a second user specified date.</li>
+          <div class="well">
+            <h5>Date/Age Picker</h5>
+            <p>You want a user to input a date or their age.</p>
+            <div id="demo-2" class="date-dropdown"></div> <br />
+          </div>
+
+          <div class="well">
+            <h5>You want your users to specify a date in terms of the number of
+          years after a second user specified date.</h5>
+            <p>You want to allow users choose between three fixed
+            dates (e.g. Thanksgiving, Christmas, and Memorial Day), or
+            an arbitraryly specified date.</p>
+            <div id="demo-3" class="date-dropdown"></div> <br />
+          </div>
 
           <h3>Options</h3>
           <table class="table table-bordered table-hover">
@@ -172,8 +249,10 @@
 
           <h3>Choices</h3>
           <h4>Example</h4>
-          <pre>
-settings: {
+          <pre class="prettyprint linenums language-js">
+settings = {
+  defaultChoice: 1,
+  defaultValue: "5/5/2005",
   choices: [
     {
       type: "constant",
@@ -187,7 +266,7 @@ settings: {
     {
       type: "yearsAfter",
       label: "Your Age",
-      origin: yourDateOfBirth,
+      origin: "2/19/1988",
     },
     {
       type: "function",
@@ -204,14 +283,32 @@ settings: {
       }
     },
   ],
-}
-          </pre>
+};
+$('#some-div').dateDropdown(settings);</pre>
 
           <h4>Common Options</h4>
+          <p>Each choice object requires a <code>type</code> ("constant", "pickDate",
+          "yearsAfter", or "function"), and a <code>label</code>.  The label is displayed in
+          the dropdown list.
+          </p>
           <h4>Constant Type</h4>
+          <p>A constant date---no further user interaction required.  This will
+          disable the input tag when selected.</p>
+          <p>This choice type requires you to specify a <code>value</code>, using either a
+          date object or a date string.</p>
           <h4>Pick Date Type</h4>
+          <p>Allow the user to specify a date; no further options required.</p>
           <h4>Years After Type</h4>
+          <p>Allow the user to specify the number of years after a given date.
+          This can be used for a crude "age" selector.</p>
+          <p>Requires the reference date to be specified using the
+          <code>origin</code> option.</p>
           <h4>Custom Function Type</h4>
+          <p>Most powerful choice; calculate the age using a function.  This
+          requires two functions, one to convert from a date to the input text
+          value, and a second to convert back.  These two functions are
+          specified using the <code>inputToDate</code> and
+          <code>dateToInput</code> keys.</p>
 
           <h3>Methods</h3>
           <h4>.dateDropdown(options)</h4>
@@ -238,7 +335,7 @@ settings: {
           <div class="alert alert-info">
             <strong>Heads up!</strong> Any previously defined jQuery valHooks
             are preserved for non-dropdown <code>div</code> tags (to avoid
-            plugin conflicts), however it is possible that other plugins whttp://twitter.github.io/bootstrap/javascript.html#overviewill
+            plugin conflicts), however it is possible that other plugins will
             overwrite our valHooks.
           </div>
 
@@ -265,5 +362,12 @@ settings: {
         </div>
       </div>
     </div>
+    <footer>
+      <small class="right">
+        Code Developed by <a href="http://www.eipiconsulting.com" target="_blank">EiPi Consulting</a>.
+      </small>
+      <br />
+      <small class="right">We are a five-man remote web-development team.</small>
+    </footer>
   </body>
 </html>
