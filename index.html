@@ -35,118 +35,7 @@
       .left {
         float: left;
       }
-
-      #title {
-      }
     </style>
-
-    <script type="text/javascript" charset="utf-8">
-      $(function(){
-         prettyPrint();
-
-        var demo1 = {
-          choices: [
-            {
-              type: "constant",
-              label: "Memorial Day", 
-              value: "5/27/2013",
-            },
-            {
-              type: "constant",
-              label: "Christmas", 
-              value: "12/25/2013",
-            },
-            {
-              type: "constant",
-              label: "Thanksgiving", 
-              value: "11/28/2013",
-            },
-            {
-              type: "pickDate",
-              label: "Specify", 
-            },
-          ]
-        };
-        $('#demo-1').dateDropdown(demo1);
-
-        var demo2 = {
-          defaultValue: "26",
-          defaultChoice: 0,
-          alwaysShowLabels: false,
-          choices: [
-            {
-              type: "yearsAfter",
-              label: "Age", 
-              origin: "2/19/1988",
-            },
-            {
-              type: "pickDate",
-              label: "Specify Date", 
-            },
-          ]
-        };
-        $('#demo-2').dateDropdown(demo2);
-
-        function yearsAfter(date, offset) {
-          var out = new Date(date.getTime());
-          out.setFullYear(date.getFullYear() + offset);
-          return out;
-        };
-        var dob = new Date(1988, 1, 19);
-        var normalRetirement = yearsAfter(dob, 65);
-        var earliestUnreduced = yearsAfter(dob, 60);
-        var options = {
-          defaultChoice: 2,
-          choices: [
-            {
-              type: "constant",
-              label: "Normal Retirement",
-              value: normalRetirement,
-            },
-            {
-              type: "constant",
-              label: "Earliest Unreduced",
-              value: earliestUnreduced,
-            },
-            {
-              type: "pickDate",
-              label: "Date (MM/DD/YYYY)",
-            },
-            {
-              type: "yearsAfter",
-              label: "Your Age",
-              origin: dob,
-            },
-          ]
-        };
-
-        var commencementChoices = [
-            {
-              type: "function",
-              label: "Years After Termination",
-              text2date: function(text) {
-                var offset = Number(text);
-                var terminationDate = $('#termination-date').val();
-                return yearsAfter(new Date(terminationDate), offset);
-              },
-              date2text: function(date) {
-                var terminationDate = new Date($('#termination-date').val());
-                text = String(date.getFullYear() - terminationDate.getFullYear());
-                return text;
-              }
-            },
-            {
-              type: "pickDate",
-              label: "Date (MM/DD/YYYY)",
-            },
-            {
-              type: "yearsAfter",
-              label: "Your Age",
-              origin: dob,
-            },
-        ];
-      });
-    </script>
     
   </head>
   <body>
@@ -167,8 +56,12 @@
         <div class="offset1 span9">
 
           <h3>Overview</h3>
-          A fully-tested, generic bootstrap component that allows users to specify a date in a
-          variety of different ways.
+          A fully-tested, generic bootstrap component that allows users to
+          specify a date in a variety of different ways.  Note that this is not
+          the same as a date-picker!  There is, however a good plugin for that
+          <a href="https://github.com/eternicode/bootstrap-datepicker">here</a>.
+          Perhaps the best way to understand the purpose of this plugin is to
+          look at a few examples.
 
           <h4>Example Use Cases</h4>
 
@@ -179,21 +72,124 @@
             an arbitraryly specified date.</p>
             <div id="demo-1" class="date-dropdown"></div> <br />
           </div>
+          <script type="text/javascript" charset="utf-8">
+            $(function(){
+               prettyPrint();
+
+              var demo1 = {
+                defaultChoice: 0,
+                choices: [
+                  {
+                    type: "constant",
+                    label: "Memorial Day", 
+                    value: "5/27/2013",
+                  },
+                  {
+                    type: "constant",
+                    label: "Christmas", 
+                    value: "12/25/2013",
+                  },
+                  {
+                    type: "constant",
+                    label: "Thanksgiving", 
+                    value: "11/28/2013",
+                  },
+                  {
+                    type: "pickDate",
+                    label: "Specify", 
+                  },
+                ]
+              };
+              $('#demo-1').dateDropdown(demo1);
+            });
+          </script>
 
           <div class="well">
             <h5>Date/Age Picker</h5>
             <p>You want a user to input a date or their age.</p>
             <div id="demo-2" class="date-dropdown"></div> <br />
           </div>
+          <script type="text/javascript" charset="utf-8">
+            $(function() {
+              var demo2 = {
+                defaultChoice: 0,
+                defaultValue: "26",
+                alwaysShowLabels: false,
+                choices: [
+                  {
+                    type: "yearsAfter",
+                    label: "Age", 
+                    origin: "2/19/1988",
+                  },
+                  {
+                    type: "pickDate",
+                    label: "Specify Date", 
+                  },
+                ],
+                valueChange: function() {
+                  $('#demo-3').dateDropdown('refresh');
+                  console.log('test');
+                },
+              };
+              $('#demo-2').dateDropdown(demo2);
+            });
+          </script>
 
           <div class="well">
-            <h5>You want your users to specify a date in terms of the number of
-          years after a second user specified date.</h5>
-            <p>You want to allow users choose between three fixed
-            dates (e.g. Thanksgiving, Christmas, and Memorial Day), or
-            an arbitraryly specified date.</p>
+            <h5>Multiple Dates with dependencies</h5>
+            <p>You want your users to specify a date in terms of the number of
+          years after another user specified date (e.g. the previous example).</p>
             <div id="demo-3" class="date-dropdown"></div> <br />
           </div>
+          <script type="text/javascript" charset="utf-8">
+            $(function() {
+
+              function yearsAfter(date, offset) {
+                var out = new Date(date.getTime());
+                out.setFullYear(date.getFullYear() + offset);
+                return out;
+              };
+
+              var demo3 = {
+                defaultChoice: 0,
+                defaultValue: "2",
+                choices: [
+                  {
+                    type: "function",
+                    label: "Years after Demo 2", 
+                    inputToDate: function(input) {
+                      var offset = Number(input);
+                      var demo2date = $('#demo-2').val();
+                      return yearsAfter(new Date(demo2date), offset);
+                    },
+                    dateToInput: function(date) {
+                      var demo2date = new Date($('#demo-2').val());
+                      input = String(date.getFullYear() - demo2date.getFullYear());
+                      return input;
+                    }
+                  },
+                  {
+                    type: "pickDate",
+                    label: "Specify Date", 
+                  },
+                ],
+              };
+              $('#demo-3').dateDropdown(demo3);
+
+            });
+          </script>
+
+          <h4>Dependencies</h4>
+          <p>This plugin requires the <a href="http://twitter.github.io/bootstrap/">bootstrap</a> css framework as
+          well as <a href="www.jQuery.com">jQuery</a>.</p>
+
+          <h4>Basic Usage</h4>
+          <p>A div with the <code>date-dropdown</code> class can be converted
+              into a date dropdown by calling
+              <code>$(".date-dropdown").dateDropdown(options);</code>.  The
+              options allow you to customize the variety of ways a user can
+              input a date.
+          </p>
 
           <h3>Options</h3>
           <table class="table table-bordered table-hover">
@@ -271,13 +267,13 @@ settings = {
     {
       type: "function",
       label: "Decades after WW2",
-      text2date: function(text) {
+      inputToDate: function(text) {
         var ww2date = new Date(1939, 9, 1);
         var decades = Number(text);
         ww2date.setYear(ww2date.getFullYear() + decades*10);
         return ww2date;
       },
-      date2text: function(date) {
+      dateToInput: function(date) {
         var ww2date = new Date(1939, 9, 1);
         return String((date.getFullYear() - ww2date.getFullYear())/10);
       }
@@ -309,6 +305,7 @@ $('#some-div').dateDropdown(settings);</pre>
           value, and a second to convert back.  These two functions are
           specified using the <code>inputToDate</code> and
           <code>dateToInput</code> keys.</p>
+          <p>Using the function type you can do a lot of powerful things; for example, if you want to impliment a proper age widget you may want to use <a href="www.datejs.com">datejs</a> with a "function" option so that it properly accounts for leap years and other subtlties.</p>
 
           <h3>Methods</h3>
           <h4>.dateDropdown(options)</h4>
@@ -339,6 +336,14 @@ $('#some-div').dateDropdown(settings);</pre>
             overwrite our valHooks.
           </div>
 
+          <h4>.data('settings')</h4>
+          <p>If you need to access the settings for a date-dropdown widget, you
+          can using jQuery's <code>data()</code> function.  You can access the
+          current date as a javascript Date object using
+          <code>$("#myDiv").data('settings').currentDate</code>.</p>
+          <div class="alert alert-info">
+            <strong>Heads up!</strong> Accessing the settings in this way is currently only supported for "read only" opperations; e.g. you couldn't add choices after the fact using this!</div>
+
           <h3>Events</h3>
           <table class="table table-bordered table-hover">
           <tr>
@@ -350,7 +355,7 @@ $('#some-div').dateDropdown(settings);</pre>
             <td>This event fires every time the underlying date represented by
             the plugin changes.  This will typically occurs when the user edits
             the input tag, however it will also fire if the value is changed
-            programatically.</td>
+            programatically.  The function is passed a single argument, the new date.</td>
           </tr>
           </table>
 
@@ -359,6 +364,7 @@ $('#some-div').dateDropdown(settings);</pre>
           you have any suggestions, or run across bugs or inconsistencies in the
           documentation, please create a github issue and we will respond as
           fast as possible! </p>
+          <br />
         </div>
       </div>
     </div>
