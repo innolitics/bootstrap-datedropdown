@@ -213,6 +213,7 @@
 
     var dateDropdownSelect = function($dropdown, choiceNumber) {
         var settings = $dropdown.data('settings');
+        var $btnGroup = $dropdown.find('.btn-group');
         var $input = $dropdown.find('input');
         var choice = settings.choices[choiceNumber];
         settings.currentChoice = choice;
@@ -226,10 +227,13 @@
 
         var date = settings.currentDate;
         var text = dateToInput(date, choice);
+        var initialDropdownWidth = $dropdown.width();
         $input.val(text);
         if (settings.alwaysShowLabels) {
             $dropdown.find('.current-option-label').text(choice.label + " ");
         }
+        // ensure that the width of the total widget is constant
+        $input.outerWidth(initialDropdownWidth - $btnGroup.outerWidth());
     };
 
     var dateDropdownRefresh = function($dropdown) {
