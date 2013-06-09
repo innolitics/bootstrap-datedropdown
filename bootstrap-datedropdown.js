@@ -88,10 +88,13 @@
         var settings = $.extend(true, {
             dropdownPosition: "left",
             defaultChoice: 0,
-            inputId: "",
+            inputAttrs: {},
+            btnAttrs: {},
             defaultValue: castDateToString(new Date()),
             alwaysShowLabels: true,
             valueChange: undefined,
+            inputId: "datedropdown" + $(".datedropdown"),
+            inputName: "datedropdown" + $(".datedropdown"),
         }, options || {});
 
         // convert date-strings to date-objects
@@ -126,6 +129,7 @@
         }
 
         var $btn = $("<button>")
+        .attr(settings.btnAttrs)
         .addClass("btn dropdown-toggle")
         .attr("data-toggle", "dropdown")
         .append('<span class="current-option-label">')
@@ -136,8 +140,13 @@
         .append($btn, $choices);
 
         var $input = $("<input>")
-        .prop("id", settings.inputId)
+        .attr(settings.inputAttrs)
         .prop("type", "text");
+
+        var $hiddenInput = $("<input>")
+        .attr("type", "hidden")
+        .attr("id", settings.inputId)
+        .attr("name", settings.inputName);
 
         if (settings.dropdownPosition == "left") {
             var alignmentClass = "input-prepend";
@@ -152,7 +161,7 @@
         } else {
             $dropdown.append($input, $btnGroup);
         }
-        $dropdown.dateDropdown(settings.defaultChoice);
+        $dropdown.append($hiddenInput);
 
         // SETUP VAL FUNCTIONS
         // override the val() function, preserving previous functionality in
@@ -186,10 +195,15 @@
                     }
                 }
                 var settings = $(elem).data('settings');
-                var oldVal = $(elem).val();
+                try {
+                    var oldVal = $(elem).val();
+                } catch(err) {
+                    // continue
+                }
                 var newVal = castToDate(val);
+                $(elem).find("input[type=hidden]").val(castDateToString(newVal));
                 settings.currentDate = newVal;
-                if (settings.valueChange && oldVal !== newVal) {
+                if (settings.valueChange && oldVal && oldVal !== newVal) {
                     settings.valueChange(settings.currentDate);
                 }
                 return $dropdown;
@@ -209,12 +223,16 @@
             var choiceNumber = $(this).prevAll('li').size();
             $dropdown.dateDropdown(choiceNumber);
         });
+
+        // SET THE INITIAL VALUE
+        $dropdown.dateDropdown(settings.defaultChoice);
+        $hiddenInput.val($dropdown.val());
     };
 
     var dateDropdownSelect = function($dropdown, choiceNumber) {
         var settings = $dropdown.data('settings');
         var $btnGroup = $dropdown.find('.btn-group');
-        var $input = $dropdown.find('input');
+        var $input = $dropdown.find('input[type=text]');
         var choice = settings.choices[choiceNumber];
         settings.currentChoice = choice;
 
@@ -229,6 +247,7 @@
         var text = dateToInput(date, choice);
         var initialDropdownWidth = $dropdown.width();
         $input.val(text);
+
         if (settings.alwaysShowLabels) {
             $dropdown.find('.current-option-label').text(choice.label + " ");
         }
@@ -239,7 +258,7 @@
     var dateDropdownRefresh = function($dropdown) {
         var settings = $dropdown.data('settings');
         var text = dateToInput(settings.currentDate, settings.currentChoice);
-        $dropdown.find('input').val(text);
+        $dropdown.find('input[type=text]').val(text);
     };
 
     $.fn.dateDropdown = function(arg){
