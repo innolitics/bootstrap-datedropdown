@@ -82,183 +82,191 @@
 
     function dateDropdownInit($dropdown, options) {
 
-        // PARSE OPTIONS
-        
-        // defaults
-        var settings = $.extend(true, {
-            dropdownPosition: "left",
-            defaultChoice: 0,
-            inputAttrs: {},
-            btnAttrs: {},
-            defaultValue: castDateToString(new Date()),
-            alwaysShowLabels: true,
-            valueChange: undefined,
-            inputId: "datedropdown" + $(".datedropdown"),
-            inputName: "datedropdown" + $(".datedropdown"),
-        }, options || {});
+        $dropdown.each(function(){
+            // PARSE OPTIONS
+            
+            // defaults
+            var settings = $.extend(true, {
+                dropdownPosition: "left",
+                defaultChoice: 0,
+                inputAttrs: {},
+                btnAttrs: {},
+                defaultValue: castDateToString(new Date()),
+                alwaysShowLabels: true,
+                valueChange: undefined,
+                inputId: "datedropdown" + $(".datedropdown"),
+                inputName: "datedropdown" + $(".datedropdown"),
+            }, options || {});
 
-        // convert date-strings to date-objects
-        for (var i = 0; i < settings.choices.length; i++) {
-            var choice = settings.choices[i];
+            // convert date-strings to date-objects
+            for (var i = 0; i < settings.choices.length; i++) {
+                var choice = settings.choices[i];
 
-            switch (choice.type) {
-                case 'yearsAfter':
-                    choice.origin = castToDate(choice.origin);
-                    break;
-                case 'constant':
-                    choice.value = castToDate(choice.value);
-                    break;
+                switch (choice.type) {
+                    case 'yearsAfter':
+                        choice.origin = castToDate(choice.origin);
+                        break;
+                    case 'constant':
+                        choice.value = castToDate(choice.value);
+                        break;
+                }
             }
-        }
 
-        var choice = settings.choices[settings.defaultChoice];
-        settings.currentChoice = choice;
-        settings.currentDate = inputToDate(settings.defaultValue, choice);
+            var choice = settings.choices[settings.defaultChoice];
+            settings.currentChoice = choice;
+            settings.currentDate = inputToDate(settings.defaultValue, choice);
 
-        // save a copy of choices onto the object for later access
-        $dropdown.data('settings', settings);
+            // save a copy of choices onto the object for later access
+            $dropdown.data('settings', settings);
 
-        // GENERATE HTML
-        var $choices = $("<ul>").addClass("dropdown-menu");
-        for (var i = 0; i < settings.choices.length; i++) {
-            var choice = settings.choices[i];
-            var $link = $("<a>")
-            .text(choice.label);
-            var $choice = $("<li>").append($link);
-            $choices.append($choice);
-        }
-
-        var $btn = $("<button>")
-        .attr(settings.btnAttrs)
-        .addClass("btn dropdown-toggle")
-        .attr("data-toggle", "dropdown")
-        .append('<span class="current-option-label">')
-        .append('<span class="caret">');
-
-        var $btnGroup = $("<div>")
-        .addClass("btn-group")
-        .append($btn, $choices);
-
-        var $input = $("<input>")
-        .attr(settings.inputAttrs)
-        .prop("type", "text");
-
-        var $hiddenInput = $("<input>")
-        .attr("type", "hidden")
-        .attr("id", settings.inputId)
-        .attr("name", settings.inputName);
-
-        if (settings.dropdownPosition == "left") {
-            var alignmentClass = "input-prepend";
-        } else {
-            var alignmentClass = "input-append";
-        }
-
-        $dropdown.addClass(alignmentClass)
-        .addClass(DIV_CLASS);
-        if (settings.dropdownPosition == "left") {
-            $dropdown.append($btnGroup, $input);
-        } else {
-            $dropdown.append($input, $btnGroup);
-        }
-        $dropdown.append($hiddenInput);
-
-        // SETUP VAL FUNCTIONS
-        // override the val() function, preserving previous functionality in
-        // case of conflicts with other plugins unless the div has the
-        // date-dropdown class
-        var origHookGet, origHookSet;
-        if ($.valHooks.div) {
-            origHookGet = $.valHooks.div.get;
-            origHookSet = $.valHooks.div.set;
-        } else {
-            $.valHooks.div = {};
-        }
-
-        $.valHooks.div = {
-            get: function(elem) {
-                if (!$(elem).hasClass(DIV_CLASS)) {
-                    if (origHookGet) {
-                        return origHookGet(elem);
-                    } else {
-                        return "";
-                    }
-                }
-                var settings = $(elem).data('settings');
-                return castDateToString(settings.currentDate);
-            },
-            set: function(elem, val) {
-                if (!$(elem).hasClass(DIV_CLASS)) {
-                    if (origHookSet) {
-                        origHookSet(elem, val);
-                        return $dropdown;
-                    }
-                }
-                var settings = $(elem).data('settings');
-                try {
-                    var oldVal = $(elem).val();
-                } catch(err) {
-                    // continue
-                }
-                var newVal = castToDate(val);
-                $(elem).find("input[type=hidden]").val(castDateToString(newVal));
-                settings.currentDate = newVal;
-                if (settings.valueChange && oldVal && oldVal !== newVal) {
-                    settings.valueChange(settings.currentDate);
-                }
-                return $dropdown;
+            // GENERATE HTML
+            var $choices = $("<ul>").addClass("dropdown-menu");
+            for (var i = 0; i < settings.choices.length; i++) {
+                var choice = settings.choices[i];
+                var $link = $("<a>")
+                .text(choice.label);
+                var $choice = $("<li>").append($link);
+                $choices.append($choice);
             }
-        };
 
-        // CHANGE LISTENERS
-        $input.change(function(){
-            var settings = $dropdown.data('settings');
-            var choice = settings.currentChoice;
-            var text = $input.val();
-            var date = inputToDate(text, choice);
-            $dropdown.val(date);
+            var $btn = $("<button>")
+            .attr(settings.btnAttrs)
+            .addClass("btn dropdown-toggle")
+            .attr("data-toggle", "dropdown")
+            .append('<span class="current-option-label">')
+            .append('<span class="caret">');
+
+            var $btnGroup = $("<div>")
+            .addClass("btn-group")
+            .append($btn, $choices);
+
+            var $input = $("<input>")
+            .attr(settings.inputAttrs)
+            .prop("type", "text");
+
+            var $hiddenInput = $("<input>")
+            .attr("type", "hidden")
+            .attr("id", settings.inputId)
+            .attr("name", settings.inputName);
+
+            if (settings.dropdownPosition == "left") {
+                var alignmentClass = "input-prepend";
+            } else {
+                var alignmentClass = "input-append";
+            }
+
+            $dropdown.addClass(alignmentClass)
+            .addClass(DIV_CLASS);
+            if (settings.dropdownPosition == "left") {
+                $dropdown.append($btnGroup, $input);
+            } else {
+                $dropdown.append($input, $btnGroup);
+            }
+            $dropdown.append($hiddenInput);
+
+            // SETUP VAL FUNCTIONS
+            // override the val() function, preserving previous functionality in
+            // case of conflicts with other plugins unless the div has the
+            // date-dropdown class
+            var origHookGet, origHookSet;
+            if ($.valHooks.div) {
+                origHookGet = $.valHooks.div.get;
+                origHookSet = $.valHooks.div.set;
+            } else {
+                $.valHooks.div = {};
+            }
+
+            $.valHooks.div = {
+                get: function(elem) {
+                    if (!$(elem).hasClass(DIV_CLASS)) {
+                        if (origHookGet) {
+                            return origHookGet(elem);
+                        } else {
+                            return "";
+                        }
+                    }
+                    var settings = $(elem).data('settings');
+                    return castDateToString(settings.currentDate);
+                },
+                set: function(elem, val) {
+                    if (!$(elem).hasClass(DIV_CLASS)) {
+                        if (origHookSet) {
+                            origHookSet(elem, val);
+                            return $dropdown;
+                        }
+                    }
+                    var settings = $(elem).data('settings');
+                    try {
+                        var oldVal = $(elem).val();
+                    } catch(err) {
+                        // continue
+                    }
+                    var newVal = castToDate(val);
+                    $(elem).find("input[type=hidden]").val(castDateToString(newVal));
+                    settings.currentDate = newVal;
+                    if (settings.valueChange && oldVal && oldVal !== newVal) {
+                        settings.valueChange(settings.currentDate);
+                    }
+                    return $dropdown;
+                }
+            };
+
+            // CHANGE LISTENERS
+            $input.change(function(){
+                var settings = $dropdown.data('settings');
+                var choice = settings.currentChoice;
+                var text = $input.val();
+                var date = inputToDate(text, choice);
+                $dropdown.val(date);
+            });
+
+            $dropdown.find('li').click(function(){
+                var choiceNumber = $(this).prevAll('li').size();
+                $dropdown.dateDropdown(choiceNumber);
+            });
+
+            // SET THE INITIAL VALUE
+            $dropdown.dateDropdown(settings.defaultChoice);
+            $hiddenInput.val($dropdown.val());
         });
-
-        $dropdown.find('li').click(function(){
-            var choiceNumber = $(this).prevAll('li').size();
-            $dropdown.dateDropdown(choiceNumber);
-        });
-
-        // SET THE INITIAL VALUE
-        $dropdown.dateDropdown(settings.defaultChoice);
-        $hiddenInput.val($dropdown.val());
     };
 
     var dateDropdownSelect = function($dropdown, choiceNumber) {
-        var settings = $dropdown.data('settings');
-        var $btnGroup = $dropdown.find('.btn-group');
-        var $input = $dropdown.find('input[type=text]');
-        var choice = settings.choices[choiceNumber];
-        settings.currentChoice = choice;
+        $dropdown.each(function(){
+            var $dropdown = $(this);
+            var settings = $dropdown.data('settings');
+            var $btnGroup = $dropdown.find('.btn-group');
+            var $input = $dropdown.find('input[type=text]');
+            var choice = settings.choices[choiceNumber];
+            settings.currentChoice = choice;
 
-        if (choice.type == 'constant') {
-            $dropdown.val(choice.value);
-            $input.prop('disabled', true);
-        } else {
-            $input.prop('disabled', false);
-        }
+            if (choice.type == 'constant') {
+                $dropdown.val(choice.value);
+                $input.prop('disabled', true);
+            } else {
+                $input.prop('disabled', false);
+            }
 
-        var date = settings.currentDate;
-        var text = dateToInput(date, choice);
-        var initialDropdownWidth = $dropdown.width();
-        $input.val(text);
+            var date = settings.currentDate;
+            var text = dateToInput(date, choice);
+            var initialDropdownWidth = $dropdown.width();
+            $input.val(text);
 
-        if (settings.alwaysShowLabels) {
-            $dropdown.find('.current-option-label').text(choice.label + " ");
-        }
-        // ensure that the width of the total widget is constant
-        $input.outerWidth(initialDropdownWidth - $btnGroup.outerWidth());
+            if (settings.alwaysShowLabels) {
+                $dropdown.find('.current-option-label').text(choice.label + " ");
+            }
+            // ensure that the width of the total widget is constant
+            $input.outerWidth(initialDropdownWidth - $btnGroup.outerWidth());
+        });
     };
 
     var dateDropdownRefresh = function($dropdown) {
-        var settings = $dropdown.data('settings');
-        var text = dateToInput(settings.currentDate, settings.currentChoice);
-        $dropdown.find('input[type=text]').val(text);
+        $dropdown.each(function(){
+            var $dropdown = $(this);
+            var settings = $dropdown.data('settings');
+            var text = dateToInput(settings.currentDate, settings.currentChoice);
+            $dropdown.find('input[type=text]').val(text);
+        })
     };
 
     $.fn.dateDropdown = function(arg){
