@@ -29,6 +29,12 @@
       return out;
     };
 
+    function isValidDate(d) {
+      if ( Object.prototype.toString.call(d) !== "[object Date]" )
+        return false;
+      return !isNaN(d.getTime());
+    };
+
     function dateToInput(date, choice) {
         var input;
         switch (choice.type) {
@@ -238,6 +244,8 @@
             var $btnGroup = $dropdown.find('.btn-group');
             var $input = $dropdown.find('input[type=text]');
             var choice = settings.choices[choiceNumber];
+            var initialDropdownWidth = $dropdown.width();
+
             settings.currentChoice = choice;
 
             if (choice.type == 'constant') {
@@ -248,13 +256,17 @@
             }
 
             var date = settings.currentDate;
-            var text = dateToInput(date, choice);
-            var initialDropdownWidth = $dropdown.width();
+            if (isValidDate(date)) {
+                var text = dateToInput(date, choice);
+            } else {
+                var text = "";
+            }
             $input.val(text);
 
             if (settings.alwaysShowLabels) {
                 $dropdown.find('.current-option-label').text(choice.label + " ");
             }
+
             // ensure that the width of the total widget is constant
             $input.outerWidth(initialDropdownWidth - $btnGroup.outerWidth());
         });
