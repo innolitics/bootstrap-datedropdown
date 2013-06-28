@@ -15,18 +15,18 @@
 
     <script type="text/javascript" charset="utf-8">
       var options = {
-        defaultChoice: 2,
         valueChange: function(val){ console.log("new value: " + val); },
         choices: [
           {
             type: "constant",
             label: "My Birthday",
-            value: "2/19/1988",
+            value: new Date(1988, 1, 19),
           },
           {
             type: "constant",
             label: "George Washington's Birthday",
             value: new Date(1732, 1, 22),
+            default: true,
           },
           {
             type: "pickDate",
@@ -35,12 +35,12 @@
           {
             type: "yearsAfter",
             label: "Age in Years",
-            origin: "2/19/1988",
+            origin: new Date(1988, 1, 19),
           },
           {
             type: "yearsAfter",
             label: "George's Age",
-            origin: new Date(1732, 2, 22),
+            origin: new Date(1732, 1, 22),
           },
           {
             type: "function",
@@ -64,77 +64,70 @@
       $(function(){
         var $dd;
         var $input;
+        var initialDate = "4/20/1994";
+
         module('Date Dropdown', {
           setup: function() {
-            $dd = $('.date-dropdown')
-            .empty()
-            .data({})
-            .dateDropdown(options);
-            $input = $dd.find('input');
+            $dd = $('input.date-dropdown')
+              .val(initialDate)
+              .datedropdown(options);
+            $input = $dd.parent().find('input:visible');
           }, 
-        });
 
-
-        test("valHook functionality", function() {
-          var $emptyDiv = $('.empty-div');
-          equal($emptyDiv.val(), "");
-          $dd.val('2/2/2010');
-          equal($dd.val(), '2/2/2010');
-          $.valHooks.div = {
-            set: function(elem, val) {
-              $(elem).data('test', val);
-              return $(elem);
-            },
-            get: function(elem) {
-              return $(elem).data('test');
-            }
-          };
-          // setup again since first valHook overwrote this
-          $dd.empty().dateDropdown(options);
-          $emptyDiv.val('123');
-          equal($emptyDiv.val(), '123');
-          $dd.val('2/2/2010');
-          equal($dd.val(), '2/2/2010');
+          teardown: function() {
+            $dd
+              .datedropdown('destroy')
+              .val('')
+          }
         });
 
 
         test('Date to Input Text', function(){
-          equal($dd.dateDropdown(0).val(), '2/19/1988');
-          equal($input.val(), '2/19/1988');
-          equal($dd.dateDropdown(1).val(), '2/22/1732');
-          equal($input.val(), '2/22/1732');
-          equal($dd.dateDropdown(2).val(), '2/22/1732');
-          equal($input.val(), '2/22/1732');
-          equal($dd.dateDropdown(3).val(), '2/22/1732');
-          equal($input.val(), (1732 - 1988.0).toString());
-          equal($dd.dateDropdown(4).val(), '2/22/1732');
-          equal($input.val(), (1732 - 1732).toString());
-          equal($dd.dateDropdown(5).val(), '2/22/1732');
-          equal($input.val(), "-20.7");
+          equal($dd.datedropdown(0).val(), '2/19/1988')
+          equal($input.val(), '2/19/1988')
+
+          equal($dd.datedropdown(1).val(), '2/22/1732')
+          equal($input.val(), '2/22/1732')
+
+          equal($dd.datedropdown(2).val(), '2/22/1732')
+          equal($input.val(), '2/22/1732')
+
+          equal($dd.datedropdown(4).val(), '2/22/1732')
+          equal($input.val(), (1732 - 1732).toString())
         });
 
 
         test('Changing The Value', function(){
-          $dd.dateDropdown(2)
-          .val('2/19/1988');
-          equal($dd.val(), '2/19/1988');
+          $dd.datedropdown(2).val('2/19/1988')
+          equal($dd.val(), '2/19/1988')
+
           $dd.val('2/19/1989')
-          $dd.dateDropdown(3);
-          equal($input.val(), '1');
+          $dd.datedropdown(3)
+          equal($input.val(), '1')
+
+          $dd.val('6/19/1989').datedropdown('process')
+          equal($input.val(), '1')
+
+          $dd.val('6/18/1990').datedropdown('process')
+          equal($input.val(), '1')
+
+          $dd.val('6/20/1990').datedropdown('process')
+          equal($input.val(), '2')
+
         });
 
         test('Change listeners', function(){
           // test input change listener
-          $dd.dateDropdown(0);
+          $dd.datedropdown(0);
           equal($dd.val(), '2/19/1988');
-          $dd.dateDropdown(3);
-          $input.val(String(Number($input.val() + 1)))
-          .change();
+
+          $dd.datedropdown(3);
+          $input.val(String(Number($input.val() + 1))).change()
           equal($dd.val(), '2/19/1989');
 
           // test dropdown click listener
-         $dd.find('li:eq(1)').click();
-         equal($dd.val(), '2/22/1732');
+          $dd.find('li:eq(1)').click();
+          equal($dd.val(), '2/22/1732');
         });
 
       });
@@ -145,7 +138,8 @@
     <br />
     <div class="row">
       <div class="span4">
-        <div class="date-dropdown span2"></div>
+        <input class="date-dropdown span2" />
+
         <div class="empty-div"></div>
       </div>
     </div>
