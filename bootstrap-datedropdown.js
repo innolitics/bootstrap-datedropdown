@@ -22,13 +22,12 @@
 
     , generateHtml: function() {
       var options = this.options
-      this.$choices = $("<ul>").addClass("dropdown-menu")
 
+      this.$choices = $("<ul>").addClass("dropdown-menu")
       for (var i = 0; i < this.choices.length; i++) {
         var choice = this.choices[i]
             , $link = $("<a>").text(choice.label)
             , $choice = $("<li>").append($link)
-
         this.$choices.append($choice)
       }
 
@@ -48,9 +47,12 @@
       this.$input = $("<input>")
           .attr(options.inputAttrs)
           .prop("type", "text")
-
+          .addClass('datedropdown-input')
 
       this.$container = $("<div>")
+          .attr(options.containerAttrs)
+          .addClass('datedropdown-container')
+
       this.$element
           .after(this.$container)
           .appendTo(this.$container)
@@ -60,7 +62,7 @@
             .addClass("input-prepend")
             .append(this.$btnGroup, this.$input)
       } else {
-        $container
+        this.$container
             .addClass("input-append")
             .append(this.$input, this.$btnGroup)
       }
@@ -75,7 +77,7 @@
         // this approach is a bit hacky, but will keep working if people
         // dynamically change the number of choices
         var choiceNumber = $(this).prevAll('li').size()
-        $element.dateDropdown(choiceNumber)
+        $element.datedropdown(choiceNumber)
       })
     }
  
@@ -114,11 +116,8 @@
     }
 
     , stringToDate: function(str) {
-      try {
-        return new Date(str)
-      } catch(err) {
-        return null
-      }
+      var date = new Date(str)
+      return this.isValidDate(date) ? date : null
     }
 
     , dateToInput: function(date, choice) {
@@ -156,11 +155,11 @@
           date = choice.inputToDate(input)
           break
         case 'yearsAfter':
-          try {
-            var offset = Number(input)
-            date = this.yearsAfter(choice.origin, offset)
-          } catch(err) {
+          var offset = Number(input)
+          if (input == "" || isNaN(offset)) {
             date = null
+          } else {
+            date = this.yearsAfter(choice.origin, offset)
           }
           break
         case 'pickDate':
@@ -176,6 +175,13 @@
       var out = new Date(date.getTime())
       out.setFullYear(date.getFullYear() + offset)
       return out;
+    }
+
+    , isValidDate: function(date) {
+      if ( Object.prototype.toString.call(date) !== "[object Date]" ) {
+        return false;
+      }
+      return !isNaN(date.getTime());
     }
 
     // translate hidden input to visible input
@@ -244,8 +250,8 @@
     dropdownPosition: "left"
     , inputAttrs: {}
     , btnAttrs: {}
+    , containerAttrs: {}
     , showLabels: true
-    , valueChange: undefined
   }
 
 
