@@ -99,6 +99,9 @@
 
         this.$input.prop('disabled', choice.type == 'constant')
 
+        var placeholder = choice.placeholder || '';
+        this.$input.prop('placeholder', placeholder);
+
         if (this.options.showLabels) {
           var initialDropdownWidth = this.$container.width()
           this.$label.text(choice.label + " ")
