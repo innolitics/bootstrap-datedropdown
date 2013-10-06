@@ -1,259 +1,269 @@
-(function($){
+!function($){
 
-    // PLUGIN GLOBALS
-    
-    // all divs that are convereted to date-dropdown widgets are expected to
-    // have this class
-    DIV_CLASS = "date-dropdown";
+  "use strict";  // jshint ;_;
 
-    // UTILITY FUNCTIONS
-    function castDateToString(date) {
-        return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear();
-    };
 
-    function castStringToDate(str) {
-        return new Date(str);
-    };
+  /* DATEDROPDOWN PUBLIC CLASS DEFINITION
+   * =============================== */
 
-    function castToDate(opt) {
-        if (typeof(opt) == 'string') {
-            return castStringToDate(opt);
-        } else if (opt.getMonth) {
-            return new Date(opt.getTime());
+  var DateDropdown = function (element, options) {
+    this.$element = $(element).hide()
+    this.options = $.extend({}, $.fn.datedropdown.defaults, options)
+    this.choices = this.options.choices || this.choices
+
+    this.generateHtml()
+    this.setupListeners()
+    this.to(this.getDefaultChoice())
+  }
+
+  DateDropdown.prototype = {
+
+    constructor: DateDropdown
+
+    , generateHtml: function() {
+      var options = this.options
+
+      this.$choices = $("<ul>").addClass("dropdown-menu")
+      for (var i = 0; i < this.choices.length; i++) {
+        var choice = this.choices[i]
+            , $link = $("<a>").text(choice.label)
+            , $choice = $("<li>").append($link)
+        this.$choices.append($choice)
+      }
+
+      this.$label = $('<span>')
+
+      this.$btn = $("<button>")
+          .attr(options.btnAttrs)
+          .addClass("btn dropdown-toggle")
+          .attr("data-toggle", "dropdown")
+          .append(this.$label)
+          .append('<span class="caret">')
+
+      this.$btnGroup = $("<div>")
+          .addClass("btn-group")
+          .append(this.$btn, this.$choices)
+
+      this.$input = $("<input>")
+          .attr(options.inputAttrs)
+          .prop("type", "text")
+          .addClass('datedropdown-input')
+
+      this.$container = $("<div>")
+          .attr(options.containerAttrs)
+          .addClass('datedropdown-container')
+
+      this.$element
+          .after(this.$container)
+          .appendTo(this.$container)
+
+      if (options.dropdownPosition == "left") {
+        this.$container
+            .addClass("input-prepend")
+            .append(this.$btnGroup, this.$input)
+      } else {
+        this.$container
+            .addClass("input-append")
+            .append(this.$input, this.$btnGroup)
+      }
+
+    }
+
+    , setupListeners: function() {
+      this.$input.on('change', $.proxy(this.process, this))
+
+      var $element = this.$element
+      this.$btnGroup.find('li').click(function(){
+        // this approach is a bit hacky, but will keep working if people
+        // dynamically change the number of choices
+        var choiceNumber = $(this).prevAll('li').size()
+        $element.datedropdown(choiceNumber)
+      })
+    }
+ 
+    , to: function(choiceNum) {
+
+        if (choiceNum > (this.choices.length - 1) || choiceNum < 0) {
+          return;
         }
-    };
 
-    function yearsAfter(date, offset) {
-      var out = new Date(date.getTime());
-      out.setFullYear(date.getFullYear() + offset);
+        var choice = this.choices[choiceNum]
+        this.choice = choice
+
+        // translate date str to visible input text
+        this.refresh()
+
+        // translate back for consistency, important if you have a specified
+        // date, but the initial choice is of constant type
+        this.process()
+
+        this.$input.prop('disabled', choice.type == 'constant')
+
+        var placeholder = choice.placeholder || '';
+        this.$input.prop('placeholder', placeholder);
+
+        if (this.options.showLabels) {
+          var initialDropdownWidth = this.$container.width()
+          this.$label.text(choice.label + " ")
+          this.$input.outerWidth(initialDropdownWidth - this.$btnGroup.outerWidth())
+        }
+      }
+
+
+    , dateToString: function(date) {
+        if (date == null) {
+          return ""
+        } else {
+          return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear()
+        }
+    }
+
+    , stringToDate: function(str) {
+      var date = new Date(str)
+      return this.isValidDate(date) ? date : null
+    }
+
+    , dateToInput: function(date, choice) {
+      var input;
+      switch (choice.type) {
+        case 'constant':
+          input = this.dateToString(choice.value)
+          break
+        case 'function':
+          input = choice.dateToInput(date)
+          break
+        case 'yearsAfter':
+          if (date == null) {
+            input = ""
+          } else {
+            input = String(date.getFullYear() - choice.origin.getFullYear())
+          }
+          break
+        case 'pickDate':
+          input = this.dateToString(date)
+          break
+        default:
+          throw "Unreconized choice type."
+      }
+      return input;
+    }
+
+    , inputToDate: function(input, choice) {
+      var date
+      switch (choice.type) {
+        case 'constant':
+          date = choice.value
+          break
+        case 'function':
+          date = choice.inputToDate(input)
+          break
+        case 'yearsAfter':
+          var offset = Number(input)
+          if (input == "" || isNaN(offset)) {
+            date = null
+          } else {
+            date = this.yearsAfter(choice.origin, offset)
+          }
+          break
+        case 'pickDate':
+          date = this.stringToDate(input)
+          break
+        default:
+          throw "Unreconized choice type."
+      }
+      return date
+    }
+
+    , yearsAfter: function(date, offset) {
+      var out = new Date(date.getTime())
+      out.setFullYear(date.getFullYear() + offset)
       return out;
-    };
+    }
 
-    function dateToInput(date, choice) {
-        var input;
-        switch (choice.type) {
-            case 'constant':
-                input = castDateToString(choice.value);
-                break;
-            case 'function':
-                input = choice.dateToInput(date);
-                break;
-            case 'yearsAfter':
-                input = String(date.getFullYear() - choice.origin.getFullYear());
-                break;
-            case 'pickDate':
-                input = castDateToString(date);
-                break;
-            default:
-                throw "Unreconized choice type.";
+    , isValidDate: function(date) {
+      if ( Object.prototype.toString.call(date) !== "[object Date]" ) {
+        return false;
+      }
+      return !isNaN(date.getTime());
+    }
+
+    // translate hidden input to visible input
+    , refresh: function() {
+        var initialDateStr = this.$element.val()
+        var initialDate = this.stringToDate(initialDateStr)
+        var input = this.dateToInput(initialDate, this.choice)
+        this.$input.val(input)
+    }
+
+    // translate visible input to hidden input
+    , process: function() {
+      var input = this.$input.val()
+      var date = this.inputToDate(input, this.choice)
+      var dateStr = this.dateToString(date)
+      this.$element.val(dateStr)
+    }
+
+    , getDefaultChoice: function() {
+      var options = this.options
+      if (options.defaultChoice) return options.defaultChoice
+
+      for (var i = 0; i < this.choices.length; i++) {
+        if (this.choices[i].default) {
+          return i
         }
-        return input;
-    };
+      }
+      return 0
+    }
 
-    function inputToDate(input, choice) {
-        var date;
-        switch (choice.type) {
-            case 'constant':
-                date = choice.value;
-                break;
-            case 'function':
-                date = choice.inputToDate(input);
-                break;
-            case 'yearsAfter':
-                var offset = Number(input);
-                date = yearsAfter(choice.origin, offset);
-                break;
-            case 'pickDate':
-                date = new Date(input);
-                break;
-            default:
-                throw "Unreconized choice type."
-        }
-        return date;
-    };
+    , destroy: function() {
+      this.destroyHtml()
+      this.$element
+          .removeData('datedropdown')
+          .show()
+    }
+
+    , destroyHtml: function() {
+      this.$element
+          .siblings()
+          .remove()
+      this.$element
+          .unwrap()
+    }
+  }
+
+  /* DATEDROPDOWN PLUGIN DEFINITION
+   * ========================= */
+
+  var old = $.fn.datedropdown
+
+  $.fn.datedropdown = function ( option ) {
+    return this.each(function () {
+      var $this = $(this)
+          , data = $this.data('datedropdown')
+          , options = typeof option == 'object' && option
+      if (!data) $this.data('datedropdown', (data = new DateDropdown(this, options)))
+      if (typeof option == 'number') data.to(option)
+      if (typeof option == 'string') data[option]()
+    })
+  }
+
+  $.fn.datedropdown.Constructor = DateDropdown
+
+  $.fn.datedropdown.defaults = {
+    dropdownPosition: "left"
+    , inputAttrs: {}
+    , btnAttrs: {}
+    , containerAttrs: {}
+    , showLabels: true
+  }
 
 
-    // note, this isn't perfectly accurate
-    function yearsBetweenDates(date1, date2) {
-        return date1.getFullYear() - date2.getFullYear();
-    };
+  /* DATEDROPDOWN NO CONFLICT
+   * =================== */
 
-    // DROPDOWN PLUGIN
+  $.fn.datedropdown.noConflict = function () {
+    $.fn.datedropdown = old
+    return this
+  }
 
-    function dateDropdownInit($dropdown, options) {
-
-        // PARSE OPTIONS
-        
-        // defaults
-        var settings = $.extend(true, {
-            dropdownPosition: "left",
-            defaultChoice: 0,
-            inputId: "",
-            defaultValue: castDateToString(new Date()),
-            alwaysShowLabels: true,
-            valueChange: undefined,
-        }, options || {});
-
-        // convert date-strings to date-objects
-        for (var i = 0; i < settings.choices.length; i++) {
-            var choice = settings.choices[i];
-
-            switch (choice.type) {
-                case 'yearsAfter':
-                    choice.origin = castToDate(choice.origin);
-                    break;
-                case 'constant':
-                    choice.value = castToDate(choice.value);
-                    break;
-            }
-        }
-
-        var choice = settings.choices[settings.defaultChoice];
-        settings.currentChoice = choice;
-        settings.currentDate = inputToDate(settings.defaultValue, choice);
-
-        // save a copy of choices onto the object for later access
-        $dropdown.data('settings', settings);
-
-        // GENERATE HTML
-        var $choices = $("<ul>").addClass("dropdown-menu");
-        for (var i = 0; i < settings.choices.length; i++) {
-            var choice = settings.choices[i];
-            var $link = $("<a>")
-            .text(choice.label);
-            var $choice = $("<li>").append($link);
-            $choices.append($choice);
-        }
-
-        var $btn = $("<button>")
-        .addClass("btn dropdown-toggle")
-        .attr("data-toggle", "dropdown")
-        .append('<span class="current-option-label">')
-        .append('<span class="caret">');
-
-        var $btnGroup = $("<div>")
-        .addClass("btn-group")
-        .append($btn, $choices);
-
-        var $input = $("<input>")
-        .prop("id", settings.inputId)
-        .prop("type", "text");
-
-        if (settings.dropdownPosition == "left") {
-            var alignmentClass = "input-prepend";
-        } else {
-            var alignmentClass = "input-append";
-        }
-
-        $dropdown.addClass(alignmentClass)
-        .addClass(DIV_CLASS);
-        if (settings.dropdownPosition == "left") {
-            $dropdown.append($btnGroup, $input);
-        } else {
-            $dropdown.append($input, $btnGroup);
-        }
-        $dropdown.dateDropdown(settings.defaultChoice);
-
-        // SETUP VAL FUNCTIONS
-        // override the val() function, preserving previous functionality in
-        // case of conflicts with other plugins unless the div has the
-        // date-dropdown class
-        var origHookGet, origHookSet;
-        if ($.valHooks.div) {
-            origHookGet = $.valHooks.div.get;
-            origHookSet = $.valHooks.div.set;
-        } else {
-            $.valHooks.div = {};
-        }
-
-        $.valHooks.div = {
-            get: function(elem) {
-                if (!$(elem).hasClass(DIV_CLASS)) {
-                    if (origHookGet) {
-                        return origHookGet(elem);
-                    } else {
-                        return "";
-                    }
-                }
-                var settings = $(elem).data('settings');
-                return castDateToString(settings.currentDate);
-            },
-            set: function(elem, val) {
-                if (!$(elem).hasClass(DIV_CLASS)) {
-                    if (origHookSet) {
-                        origHookSet(elem, val);
-                        return $dropdown;
-                    }
-                }
-                var settings = $(elem).data('settings');
-                var oldVal = $(elem).val();
-                var newVal = castToDate(val);
-                settings.currentDate = newVal;
-                if (settings.valueChange && oldVal !== newVal) {
-                    settings.valueChange(settings.currentDate);
-                }
-                return $dropdown;
-            }
-        };
-
-        // CHANGE LISTENERS
-        $input.change(function(){
-            var settings = $dropdown.data('settings');
-            var choice = settings.currentChoice;
-            var text = $input.val();
-            var date = inputToDate(text, choice);
-            $dropdown.val(date);
-        });
-
-        $dropdown.find('li').click(function(){
-            var choiceNumber = $(this).prevAll('li').size();
-            $dropdown.dateDropdown(choiceNumber);
-        });
-    };
-
-    var dateDropdownSelect = function($dropdown, choiceNumber) {
-        var settings = $dropdown.data('settings');
-        var $btnGroup = $dropdown.find('.btn-group');
-        var $input = $dropdown.find('input');
-        var choice = settings.choices[choiceNumber];
-        settings.currentChoice = choice;
-
-        if (choice.type == 'constant') {
-            $dropdown.val(choice.value);
-            $input.prop('disabled', true);
-        } else {
-            $input.prop('disabled', false);
-        }
-
-        var date = settings.currentDate;
-        var text = dateToInput(date, choice);
-        var initialDropdownWidth = $dropdown.width();
-        $input.val(text);
-        if (settings.alwaysShowLabels) {
-            $dropdown.find('.current-option-label').text(choice.label + " ");
-        }
-        // ensure that the width of the total widget is constant
-        $input.outerWidth(initialDropdownWidth - $btnGroup.outerWidth());
-    };
-
-    var dateDropdownRefresh = function($dropdown) {
-        var settings = $dropdown.data('settings');
-        var text = dateToInput(settings.currentDate, settings.currentChoice);
-        $dropdown.find('input').val(text);
-    };
-
-    $.fn.dateDropdown = function(arg){
-        var $dropdown = $(this);
-
-        if (typeof(arg) == 'object') {
-            dateDropdownInit($dropdown, arg);
-        }
-        else if (arg == 'refresh') {
-            dateDropdownRefresh($dropdown);
-        }
-        else if (typeof(arg) == 'number') {
-            dateDropdownSelect($dropdown, arg);
-        }
-        return $dropdown;
-    };
-})(jQuery);
+}(window.jQuery);
