@@ -208,7 +208,7 @@
       if (options.defaultChoice) return options.defaultChoice
 
       for (var i = 0; i < this.choices.length; i++) {
-        if (this.choices[i].default) {
+        if (this.choices[i]["default"]) {
           return i
         }
       }
